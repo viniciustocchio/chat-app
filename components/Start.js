@@ -14,7 +14,8 @@ export default class Start extends Component {
           <Text style={styles.title}>Chat App</Text>
           <View style={styles.box}>            
             
-            <TextInput style={[styles.input, styles.text]}
+            <TextInput 
+              style={[styles.input, styles.text]}
               onChangeText={(name) => this.setState({ name })}
               value={this.state.name}
               placeholder='Your Name'
