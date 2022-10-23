@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, Button, TextInput, StyleSheet, Platform, KeyboardAvoidingView  } from 'react-native';
-import { GiftedChat, Bubble } from 'react-native-gifted-chat';
+import { GiftedChat, Bubble, InputToolbar } from 'react-native-gifted-chat';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import NetInfo from '@react-native-community/netinfo';
 
 const firebase = require('firebase');
 require('firebase/firestore');
@@ -40,9 +41,7 @@ export default class Chat extends React.Component {
 
   onCollectionUpdate = (querySnapshot) => {
     const messages = [];
-    // go through each document
     querySnapshot.forEach((doc) => {
-      // get the QueryDocumentSnapshot's data
       let data = doc.data();
       messages.push({
         _id: data._id,
@@ -91,24 +90,44 @@ export default class Chat extends React.Component {
   }
 
   componentDidMount() {
-    this.authUnsubscribe = firebase.auth().onAuthStateChanged((user) => {
-      if (!user) {
-        firebase.auth().signInAnonymously();
-      }
-      this.setState({
-        uid: user.uid,
-        messages: [],
-        user: {
-          _id: user.uid,
-          // name: name,
+    let { name } = this.props.route.params;
+    this.props.navigation.setOptions({ title: name });
+
+    NetInfo.fetch().then(connection => {
+      if (connection.isConnected) {
+        this.setState({
+          isConnected: true,
+        });
+        console.log('online');
+
+        this.referenceChatMessages = firebase.firestore().collection('messages');
+
+        this.authUnsubscribe = firebase.auth().onAuthStateChanged((user) => {
+          if (!user) {
+              firebase.auth().signInAnonymously();
+          }
+          this.setState({
+            uid: user.uid,
+            messages: [],
+            user: {
+                _id: user.uid,
+                name: name,
+            },
+          });
+          this.unsubscribe = this.referenceChatMessages
+            .orderBy('createdAt', 'desc')
+            .onSnapshot(this.onCollectionUpdate);
+          this.saveMessages();
+        });
+      } else {
+          this.setState({
+              isConnected: false,
+          });
+          console.log('offline');
+          this.getMessages();
         }
-      });
-      this.unsubscribe = this.referenceChatMessages
-        .orderBy("createdAt", "desc")
-        .onSnapshot(this.onCollectionUpdate);
-      this.saveMessages();  
-    });
-  }
+  })
+}
  
   componentWillUnmount() {
     if (this.isConnected) {
@@ -153,26 +172,36 @@ export default class Chat extends React.Component {
     )
   }
 
+  renderInputToolbar(props) {
+    if (this.state.isConnected == false) {
+    } else {
+        return (
+            <InputToolbar
+                {...props}
+            />
+        );
+    }
+  }
+
   render() {
     const { color, name } = this.props.route.params;
-
     return (
       <View style={[{ backgroundColor: color }, styles.container]}>
-          <GiftedChat
-              renderBubble={this.renderBubble.bind(this)}
-              messages={this.state.messages}
-              isConnected={this.state.isConnected}
-              onSend={messages => this.onSend(messages)}
-              user={{
-                  _id: this.state.user._id,
-                  name: name,
-              }}
-              renderActions={this.renderCustomActions}
-              renderCustomView={this.renderCustomView}
-
-          />
-          {/*Fixing Android keyboard*/}
-          {Platform.OS === 'android' ? <KeyboardAvoidingView behavior="height" /> : null}
+        <GiftedChat
+            renderBubble={this.renderBubble.bind(this)}
+            renderInputToolbar={this.renderInputToolbar.bind(this)}
+            messages={this.state.messages}
+            isConnected={this.state.isConnected}
+            onSend={messages => this.onSend(messages)}
+            user={{
+                _id: this.state.user._id,
+                name: name,
+            }}
+            renderActions={this.renderCustomActions}
+            renderCustomView={this.renderCustomView}
+        />
+        {/*Fixing Android keyboard*/}
+        {Platform.OS === 'android' ? <KeyboardAvoidingView behavior="height" /> : null}
       </View>
     );
   };
