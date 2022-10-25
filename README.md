@@ -8,7 +8,7 @@ This is my first app created using React Native. It is a chat app where users ca
 
 ### Design
 
-<img width="200" src="https://user-images.githubusercontent.com/76042761/193648166-cd38cab9-5ac2-4fb6-ba34-c35d822df75b.PNG"> <img width="200" src="https://user-images.githubusercontent.com/76042761/193648565-8873b0e8-13d5-42ff-a1d8-0e4a8c7329e3.PNG">
+<img width="200" src="https://github.com/viniciustocchio/chat-app/blob/main/assets/start.PNG?raw=true"> <img width="200" src="https://github.com/viniciustocchio/chat-app/blob/main/assets/chat.PNG?raw=true">
 
 ### Key Features
 - A page where users can enter their name and choose a background color for the chat screen before joining the chat.
