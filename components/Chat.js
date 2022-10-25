@@ -55,7 +55,7 @@ export default class Chat extends React.Component {
           name: data.user.name,
           avatar: data.user.avatar || ''
         },
-        image: Date.image || null,
+        image: data.image || null,
         location: data.location || null,
       });
     });  
